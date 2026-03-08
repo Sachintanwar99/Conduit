@@ -1,0 +1,23 @@
+project/
+│
+├── pytest.ini                ← #1 Global config
+├── .env                      ← #2 Secrets / URLs
+├── requirements.txt          ← #3 Dependencies
+│
+├── pages/                    ← #4 POM Layer
+│   ├── base_page.py
+│   ├── login_page.py
+│   ├── home_page.py
+│   └── ... (one per app page)
+│
+├── tests/                    ← #5 Test Layer
+│   ├── conftest.py
+│   ├── test_login.py
+│   └── ... (one per feature)
+│
+├── utils/
+│   ├── api_client.py         ← #6 API Layer
+│   └── helpers.py            ← #7 Utilities
+│
+└── data/
+    └── test_data.json        ← #8 Test Data
