@@ -1,0 +1,13 @@
+"""
+pages/base_page.py — The Kitchen Tools
+What: A parent class with ALL raw browser interactions wrapped into clean methods.
+Why: You don't want page.locator("#btn").click() scattered across 20 files. If Playwright's API ever changes,
+ you fix it in ONE place — the base page.
+How: Every method here wraps one Playwright action. click(selector), 
+fill(selector, text), get_text(selector). Every other page class inherits from this.
+
+
+BasePage
+   └── LoginPage   (inherits click, fill, get_text for free)
+   └── HomePage    (same)
+   └── EditorPage  (same)

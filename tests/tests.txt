@@ -1,0 +1,105 @@
+pages/login_page.py — A POM File
+
+
+What: A class that represents ONE page of your application.
+Why: This is the core of POM. If the login button's selector changes from #login-btn to [data-test='submit'],
+ you fix it in login_page.py — NOT in 10 test files.
+
+How: Two things live here:
+
+Selectors as class constants at the top (LOGIN_BUTTON = "#login-btn")
+Actions as methods (def login(username, password))
+
+Tests call login_page.login("user", "pass") — they never touch selectors directly.
+
+
+
+
+tests/conftest.py — The Waiter
+
+What: A special pytest file that provides fixtures to all test files automatically.
+Why: Without it, every test file would have to set up the browser, create page objects, 
+and handle login themselves — massive duplication. conftest.py does it once, shares it everywhere.
+How: You write functions decorated with @pytest.fixture. pytest injects these into any test that lists them as a parameter.
+
+
+
+
+tests/test_login.py — The Order Ticket
+
+What: The actual test functions — assertions only.
+Why: Tests should be so thin that reading them feels like reading plain English. They describe WHAT to test, never HOW to interact with the browser.
+How: A test does exactly 3 things:
+
+1. Arrange — get test data, navigate to a page (via fixture)
+2. Act — call a page object method
+3. Assert — check the result
+
+
+
+
+def test_invalid_login(login_page):
+    login_page.open()                           # Arrange
+    login_page.login("bad", "creds")           # Act
+    assert login_page.has_errors()             # Assert
+```
+
+No selectors. No `page.locator()`. Just clean logic.
+
+---
+
+### `utils/api_client.py` — The Delivery App
+**What:** A class that wraps ALL your REST API calls.
+**Why:** Same reason as POM — if the API endpoint changes from `/api/v1/login` to `/api/v2/login`, you fix it in ONE place. Also, tests call `api.login("user", "pass")` instead of writing `requests.post(url, json={...}, headers={...})` everywhere.
+**How:** Each method corresponds to one API endpoint. The class stores the base URL and auth token internally so tests don't pass them around everywhere.
+
+---
+
+### `utils/helpers.py` — The Prep Cook
+**What:** Small utility functions that don't belong to any page or API.
+**Why:** Things like "generate a unique username", "parse a price string to float", "build a screenshot path" are used everywhere. They don't belong in pages or tests — they live here.
+**How:** Plain Python functions. No browser. No API calls. Just logic.
+
+---
+
+### `data/test_data.json` — The Ingredients
+**What:** A JSON file with all your test data — usernames, passwords, product names, expected strings.
+**Why:** Data and logic must be separated. If a product name changes, you update the JSON — not the test. Also, you can have different JSON files per environment (dev/staging/prod).
+**How:** Load it once in `helpers.py` with a `load_test_data()` function. Tests call that function to get the data they need.
+
+---
+
+##  The POM Mental Model
+
+// The single most important idea to internalize:
+```
+ WRONG — selector in test file
+def test_login(page):
+    page.locator("#user-name").fill("admin")
+    page.locator("#password").fill("pass")
+    page.locator("#login-btn").click()
+    assert page.url == "/dashboard"
+
+// RIGHT — selector in page object, test is clean
+def test_login(login_page):
+    login_page.login("admin", "pass")
+    assert login_page.is_on_dashboard()
+```
+
+**Rule:** If you ever write `page.locator()` inside a test file, stop — that belongs in a page object.
+
+---
+
+##  How It All Connects
+```
+pytest.ini        → tells pytest where tests are, what markers exist
+     ↓
+conftest.py       → creates fixtures (browser, page objects, API client)
+     ↓
+test_login.py     → calls fixtures, calls page object methods, asserts
+     ↓
+login_page.py     → uses selectors to interact with browser
+     ↓
+base_page.py      → raw Playwright calls (click, fill, wait)
+     ↓
+    .env          → provides BASE_URL to navigate to
