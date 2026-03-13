@@ -61,6 +61,13 @@ class LoginPage(BasePage):
     def is_on_login_page(self) -> bool:
         """Return True if currently on the login page."""
         return "/login" in self.get_url()
+    
+    def is_submit_disabled(self) -> bool:
+        # Check if the submit button is enabled and clickable.
+         return self.page.locator( self.SUBMIT_BUTTON ).is_disabled()
+
+
+
 
 ## The Key Rules to Remember
 """
